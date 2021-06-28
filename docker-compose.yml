@@ -1,0 +1,33 @@
+version: '3.3'
+
+services:
+   wordpress:
+     container_name: wordpress
+     depends_on:
+       - db
+     image: wordpress:latest
+     volumes:
+       - $PWD/wordpress_files:/var/www/html
+       - $PWD/wordpress_files/uploads/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+     ports:
+       - "80:80"
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: my_wordpress_db_password
+
+   db:
+     container_name: db
+     image: mysql:5.7
+     volumes:
+       - $PWD/db_data:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: my_db_root_password
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: my_wordpress_db_password
+volumes:
+    wordpress_files:
+    db_data:
