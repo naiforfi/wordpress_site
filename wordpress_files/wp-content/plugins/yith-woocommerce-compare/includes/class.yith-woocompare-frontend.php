@@ -833,7 +833,7 @@ if ( ! class_exists( 'YITH_Woocompare_Frontend' ) ) {
 			 */
 			if ( ! $atts['product'] ) {
 				global $product;
-				$product_id = $product->get_id();
+				$product_id = $product instanceof WC_Product ? $product->get_id() : 0;
 			} else {
 				global $wpdb;
 				$product = $wpdb->get_row( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE ID = %d OR post_name = %s OR post_title = %s LIMIT 1", $atts['product'], $atts['product'], $atts['product'] ) ); // phpcs:ignore
@@ -845,6 +845,16 @@ if ( ! class_exists( 'YITH_Woocompare_Frontend' ) ) {
 			// Make sure to get always the product id of current language.
 			if ( function_exists( 'wpml_object_id_filter' ) ) {
 				$product_id = wpml_object_id_filter( $product_id, 'product', false );
+			}
+
+			if ( YITH_Woocompare_Helper::is_elementor_editor() ) {
+				$products   = wc_get_products(
+					array(
+						'limit'  => 1,
+						'return' => 'ids',
+					)
+				);
+				$product_id = ! empty( $products ) ? array_shift( $products ) : 0;
 			}
 
 			// If product ID is 0, maybe the product doesn't exists or is wrong.. in this case, doesn't show the button.

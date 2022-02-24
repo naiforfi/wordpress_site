@@ -31,6 +31,10 @@ if( !class_exists( 'YITH_WOOCOMPARE' ) ) {
         function widget( $args, $instance ) {
             global $yith_woocompare;
 
+			if ( ! $yith_woocompare->obj instanceof YITH_Woocompare_Frontend ){
+				return;
+			} 
+
             /**
              * WPML Support
              */

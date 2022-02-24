@@ -6,8 +6,9 @@ import {
 	usePaymentMethodInterface,
 	useEmitResponse,
 	useStoreNotices,
+	useStoreEvents,
 } from '@woocommerce/base-context/hooks';
-import { cloneElement } from '@wordpress/element';
+import { cloneElement, useCallback } from '@wordpress/element';
 import {
 	useEditorContext,
 	usePaymentMethodDataContext,
@@ -29,8 +30,7 @@ const PaymentMethodOptions = () => {
 	const {
 		setActivePaymentMethod,
 		activeSavedToken,
-		setActiveSavedToken,
-		expressPaymentMethods,
+		isExpressPaymentMethodActive,
 		customerPaymentMethods,
 	} = usePaymentMethodDataContext();
 	const { paymentMethods } = usePaymentMethods();
@@ -38,11 +38,9 @@ const PaymentMethodOptions = () => {
 		activePaymentMethod,
 		...paymentMethodInterface
 	} = usePaymentMethodInterface();
-	const expressPaymentMethodActive = Object.keys(
-		expressPaymentMethods
-	).includes( activePaymentMethod );
 	const { noticeContexts } = useEmitResponse();
 	const { removeNotice } = useStoreNotices();
+	const { dispatchCheckoutEvent } = useStoreEvents();
 	const { isEditor } = useEditorContext();
 
 	const options = Object.keys( paymentMethods ).map( ( name ) => {
@@ -68,11 +66,21 @@ const PaymentMethodOptions = () => {
 		};
 	} );
 
-	const updateToken = ( value ) => {
-		setActivePaymentMethod( value );
-		setActiveSavedToken( '' );
-		removeNotice( 'wc-payment-error', noticeContexts.PAYMENTS );
-	};
+	const onChange = useCallback(
+		( value ) => {
+			setActivePaymentMethod( value );
+			removeNotice( 'wc-payment-error', noticeContexts.PAYMENTS );
+			dispatchCheckoutEvent( 'set-active-payment-method', {
+				value,
+			} );
+		},
+		[
+			dispatchCheckoutEvent,
+			noticeContexts.PAYMENTS,
+			removeNotice,
+			setActivePaymentMethod,
+		]
+	);
 
 	const isSinglePaymentMethod =
 		Object.keys( customerPaymentMethods ).length === 0 &&
@@ -82,12 +90,12 @@ const PaymentMethodOptions = () => {
 		'disable-radio-control': isSinglePaymentMethod,
 	} );
 
-	return expressPaymentMethodActive ? null : (
+	return isExpressPaymentMethodActive ? null : (
 		<RadioControlAccordion
 			id={ 'wc-payment-method-options' }
 			className={ singleOptionClass }
 			selected={ activeSavedToken ? null : activePaymentMethod }
-			onChange={ updateToken }
+			onChange={ onChange }
 			options={ options }
 		/>
 	);

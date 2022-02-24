@@ -84,6 +84,20 @@ if ( ! class_exists( 'YITH_Woocompare_Helper' ) ) {
 			return $attributes;
 		}
 
+		/**
+		 * Check if current screen is elementor editor
+		 *
+		 * @since 2.6.0
+		 * @author Francesco Licandro
+		 * @return boolean
+		 */
+		public static function is_elementor_editor() {
 
+			if ( did_action( 'admin_action_elementor' ) ) {
+				return \Elementor\Plugin::$instance->editor->is_edit_mode();
+			}
+
+			return is_admin() && isset( $_REQUEST['action'] ) && in_array( sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ), array( 'elementor', 'elementor_ajax' ), true ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
 	}
 }

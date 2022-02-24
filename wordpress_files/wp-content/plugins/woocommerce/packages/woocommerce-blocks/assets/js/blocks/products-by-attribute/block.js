@@ -76,20 +76,19 @@ class ProductsByAttributeBlock extends Component {
 					<ProductAttributeTermControl
 						selected={ attributes }
 						onChange={ ( value = [] ) => {
-							/* eslint-disable camelcase */
 							const result = value.map(
-								( { id, attr_slug } ) => ( {
+								( { id, attr_slug: attributeSlug } ) => ( {
 									id,
-									attr_slug,
+									attr_slug: attributeSlug,
 								} )
 							);
-							/* eslint-enable camelcase */
 							setAttributes( { attributes: result } );
 						} }
 						operator={ attrOperator }
 						onOperatorChange={ ( value = 'any' ) =>
 							setAttributes( { attrOperator: value } )
 						}
+						isCompact={ true }
 					/>
 				</PanelBody>
 				<PanelBody
@@ -135,14 +134,12 @@ class ProductsByAttributeBlock extends Component {
 					<ProductAttributeTermControl
 						selected={ blockAttributes.attributes }
 						onChange={ ( value = [] ) => {
-							/* eslint-disable camelcase */
 							const result = value.map(
-								( { id, attr_slug } ) => ( {
+								( { id, attr_slug: attributeSlug } ) => ( {
 									id,
-									attr_slug,
+									attr_slug: attributeSlug,
 								} )
 							);
-							/* eslint-enable camelcase */
 							setAttributes( { attributes: result } );
 						} }
 						operator={ blockAttributes.attrOperator }
@@ -173,7 +170,10 @@ class ProductsByAttributeBlock extends Component {
 						controls={ [
 							{
 								icon: 'edit',
-								title: __( 'Edit' ),
+								title: __(
+									'Edit selected attribute',
+									'woocommerce'
+								),
 								onClick: () =>
 									setAttributes( { editMode: ! editMode } ),
 								isActive: editMode,

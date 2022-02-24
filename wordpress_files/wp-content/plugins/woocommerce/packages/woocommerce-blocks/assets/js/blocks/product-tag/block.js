@@ -112,6 +112,7 @@ class ProductsByTagBlock extends Component {
 						onOperatorChange={ ( value = 'any' ) =>
 							setAttributes( { tagOperator: value } )
 						}
+						isCompact={ true }
 					/>
 				</PanelBody>
 				<PanelBody
@@ -271,7 +272,10 @@ class ProductsByTagBlock extends Component {
 						controls={ [
 							{
 								icon: 'edit',
-								title: __( 'Edit' ),
+								title: __(
+									'Edit selected tags',
+									'woocommerce'
+								),
 								onClick: () =>
 									isEditing
 										? this.stopEditing()

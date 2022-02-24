@@ -6,11 +6,11 @@ import type {
 	Cart,
 	CartResponse,
 	CartResponseItem,
-	CartBillingAddress,
-	CartShippingAddress,
+	ExtensionCartUpdateArgs,
+	BillingAddressShippingAddress,
 } from '@woocommerce/types';
-import { ReturnOrGeneratorYieldUnion } from '@automattic/data-stores';
 import { camelCase, mapKeys } from 'lodash';
+import type { AddToCartEventDetail } from '@woocommerce/type-defs/events';
 
 /**
  * Internal dependencies
@@ -19,6 +19,7 @@ import { ACTION_TYPES as types } from './action-types';
 import { STORE_KEY as CART_STORE_KEY } from './constants';
 import { apiFetchWithHeaders } from '../shared-controls';
 import type { ResponseError } from '../types';
+import { ReturnOrGeneratorYieldUnion } from '../mapped-types';
 
 /**
  * Returns an action object used in updating the store with the provided items
@@ -28,14 +29,16 @@ import type { ResponseError } from '../types';
  *
  * @param  {CartResponse}      response
  */
-export const receiveCart = ( response: CartResponse ) => {
+export const receiveCart = (
+	response: CartResponse
+): { type: string; response: Cart } => {
 	const cart = ( mapKeys( response, ( _, key ) =>
 		camelCase( key )
 	) as unknown ) as Cart;
 	return {
 		type: types.RECEIVE_CART,
 		response: cart,
-	} as const;
+	};
 };
 
 /**
@@ -166,6 +169,55 @@ export const updateCartFragments = () =>
 	} as const );
 
 /**
+ * Triggers an adding to cart event so other blocks can update accordingly.
+ */
+export const triggerAddingToCartEvent = () =>
+	( {
+		type: types.TRIGGER_ADDING_TO_CART_EVENT,
+	} as const );
+
+/**
+ * Triggers an added to cart event so other blocks can update accordingly.
+ */
+export const triggerAddedToCartEvent = ( {
+	preserveCartData,
+}: AddToCartEventDetail ) =>
+	( {
+		type: types.TRIGGER_ADDED_TO_CART_EVENT,
+		preserveCartData,
+	} as const );
+
+/**
+ * POSTs to the /cart/extensions endpoint with the data supplied by the extension.
+ *
+ * @param {Object} args The data to be posted to the endpoint
+ */
+export function* applyExtensionCartUpdate(
+	args: ExtensionCartUpdateArgs
+): Generator< unknown, CartResponse, { response: CartResponse } > {
+	try {
+		const { response } = yield apiFetchWithHeaders( {
+			path: '/wc/store/cart/extensions',
+			method: 'POST',
+			data: { namespace: args.namespace, data: args.data },
+			cache: 'no-store',
+		} );
+		yield receiveCart( response );
+		yield updateCartFragments();
+		return response;
+	} catch ( error ) {
+		yield receiveError( error );
+		// If updated cart state was returned, also update that.
+		if ( error.data?.cart ) {
+			yield receiveCart( error.data.cart );
+		}
+
+		// Re-throw the error.
+		throw error;
+	}
+}
+
+/**
  * Applies a coupon code and either invalidates caches, or receives an error if
  * the coupon cannot be applied.
  *
@@ -262,6 +314,7 @@ export function* addItemToCart(
 	quantity = 1
 ): Generator< unknown, void, { response: CartResponse } > {
 	try {
+		yield triggerAddingToCartEvent();
 		const { response } = yield apiFetchWithHeaders( {
 			path: `/wc/store/cart/add-item`,
 			method: 'POST',
@@ -273,6 +326,7 @@ export function* addItemToCart(
 		} );
 
 		yield receiveCart( response );
+		yield triggerAddedToCartEvent( { preserveCartData: true } );
 		yield updateCartFragments();
 	} catch ( error ) {
 		yield receiveError( error );
@@ -339,11 +393,10 @@ export function* changeCartItemQuantity(
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- unclear how to represent multiple different yields as type
 ): Generator< unknown, void, any > {
 	const cartItem = yield select( CART_STORE_KEY, 'getCartItem', cartItemKey );
-	yield itemIsPendingQuantity( cartItemKey );
-
 	if ( cartItem?.quantity === quantity ) {
 		return;
 	}
+	yield itemIsPendingQuantity( cartItemKey );
 	try {
 		const { response } = yield apiFetchWithHeaders( {
 			path: '/wc/store/cart/update-item',
@@ -408,13 +461,6 @@ export function* selectShippingRate(
 	return true;
 }
 
-type BillingAddressShippingAddress = {
-	// eslint-disable-next-line camelcase
-	billing_address: CartBillingAddress;
-	// eslint-disable-next-line camelcase
-	shipping_address: CartShippingAddress;
-};
-
 /**
  * Updates the shipping and/or billing address for the customer and returns an
  * updated cart.
@@ -423,7 +469,7 @@ type BillingAddressShippingAddress = {
  *   billing_address and shipping_address.
  */
 export function* updateCustomerData(
-	customerData: BillingAddressShippingAddress
+	customerData: Partial< BillingAddressShippingAddress >
 ): Generator< unknown, boolean, { response: CartResponse } > {
 	yield updatingCustomerData( true );
 

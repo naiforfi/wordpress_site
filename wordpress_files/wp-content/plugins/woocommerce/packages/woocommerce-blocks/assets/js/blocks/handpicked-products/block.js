@@ -106,6 +106,7 @@ class ProductsBlock extends Component {
 							const ids = value.map( ( { id } ) => id );
 							setAttributes( { products: ids } );
 						} }
+						isCompact={ true }
 					/>
 				</PanelBody>
 			</InspectorControls>
@@ -168,7 +169,10 @@ class ProductsBlock extends Component {
 						controls={ [
 							{
 								icon: 'edit',
-								title: __( 'Edit' ),
+								title: __(
+									'Edit selected products',
+									'woocommerce'
+								),
 								onClick: () =>
 									setAttributes( { editMode: ! editMode } ),
 								isActive: editMode,

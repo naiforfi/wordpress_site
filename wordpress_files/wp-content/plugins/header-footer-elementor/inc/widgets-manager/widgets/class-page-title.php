@@ -251,9 +251,9 @@ class Page_Title extends Widget_Base {
 		$this->add_responsive_control(
 			'align',
 			[
-				'label'     => __( 'Alignment', 'header-footer-elementor' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
+				'label'              => __( 'Alignment', 'header-footer-elementor' ),
+				'type'               => Controls_Manager::CHOOSE,
+				'options'            => [
 					'left'    => [
 						'title' => __( 'Left', 'header-footer-elementor' ),
 						'icon'  => 'eicon-text-align-left',
@@ -271,10 +271,11 @@ class Page_Title extends Widget_Base {
 						'icon'  => 'eicon-text-align-justify',
 					],
 				],
-				'default'   => '',
-				'selectors' => [
+				'default'            => '',
+				'selectors'          => [
 					'{{WRAPPER}} .hfe-page-title-wrapper' => 'text-align: {{VALUE}};',
 				],
+				'frontend_available' => true,
 			]
 		);
 
@@ -421,16 +422,7 @@ class Page_Title extends Widget_Base {
 		$this->add_inline_editing_attributes( 'page_title', 'basic' );
 
 		if ( ! empty( $settings['page_heading_link']['url'] ) ) {
-			$this->add_render_attribute( 'url', 'href', $settings['page_heading_link']['url'] );
-
-			if ( $settings['page_heading_link']['is_external'] ) {
-				$this->add_render_attribute( 'url', 'target', '_blank' );
-			}
-
-			if ( ! empty( $settings['page_heading_link']['nofollow'] ) ) {
-				$this->add_render_attribute( 'url', 'rel', 'nofollow' );
-			}
-			$link = $this->get_render_attribute_string( 'url' );
+			$this->add_link_attributes( 'url', $settings['page_heading_link'] );
 		}
 
 		$heading_size_tag = Widgets_Loader::validate_html_tag( $settings['heading_tag'] );
@@ -442,7 +434,7 @@ class Page_Title extends Widget_Base {
 		$head_custom_link = isset( $settings['page_custom_link'] ) ? $settings['page_custom_link'] : '';
 		?>
 			<?php if ( '' != $head_link_url && 'custom' === $head_custom_link ) { ?>
-						<a <?php echo $link; ?> >
+						<a <?php echo wp_kses_post( $this->get_render_attribute_string( 'url' ) ); ?>>
 			<?php } elseif ( 'default' === $head_custom_link ) { ?>
 						<a href="<?php echo esc_url( get_home_url() ); ?>">
 			<?php } ?>
@@ -534,19 +526,5 @@ class Page_Title extends Widget_Base {
 			<# } #>			
 		</div>
 		<?php
-	}
-
-	/**
-	 * Render page title output in the editor.
-	 *
-	 * Written as a Backbone JavaScript template and used to generate the live preview.
-	 *
-	 * Remove this after Elementor v3.3.0
-	 *
-	 * @since 1.3.0
-	 * @access protected
-	 */
-	protected function _content_template() {
-		$this->content_template();
 	}
 }

@@ -1,5 +1,10 @@
 jQuery(document).ready(function($) {
 
+    // Exit if is elementor editor.
+    if ( $( document.body ).hasClass( 'elementor-editor-active') ) {
+        return false;
+    }
+
     // add into table
     $(document).on( 'click', '.product a.compare:not(.added)', function(e){
         e.preventDefault();

@@ -74,11 +74,10 @@ if ( ! class_exists( 'YITH_Woocompare' ) ) {
 		 */
 		public function is_frontend() {
 			$is_ajax          = ( defined( 'DOING_AJAX' ) && DOING_AJAX );
-			$context_check    = isset( $_REQUEST['context'] ) && sanitize_text_field( wp_unslash( $_REQUEST['context'] ) ) === 'frontend'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$actions_to_check = apply_filters( 'yith_woocompare_actions_to_check_frontend', array( 'woof_draw_products' ) );
+			$context_check    = isset( $_REQUEST['context'] ) && 'frontend' === sanitize_text_field( wp_unslash( $_REQUEST['context'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$actions_to_check = apply_filters( 'yith_woocompare_actions_to_check_frontend', array( 'woof_draw_products', 'prdctfltr_respond_550', 'wbmz_get_products', 'jet_smart_filters', 'productfilter' ) );
 			$action_check     = isset( $_REQUEST['action'] ) && in_array( sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ), $actions_to_check, true ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-
-			return (bool) ( ! is_admin() || ( $is_ajax && ( $context_check || $action_check ) ) );
+			return (bool) YITH_Woocompare_Helper::is_elementor_editor() || ( ! is_admin() || ( $is_ajax && ( $context_check || $action_check ) ) );
 		}
 
 		/**

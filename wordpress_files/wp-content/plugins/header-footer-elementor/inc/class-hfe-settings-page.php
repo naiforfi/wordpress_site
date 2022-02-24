@@ -99,18 +99,9 @@ class HFE_Settings_Page {
 	public function hfe_settings( $views ) {
 
 		$this->hfe_tabs();
-		$is_dismissed = [];
-		$is_dismissed = get_user_meta( get_current_user_id(), 'hfe-popup' );
-
-		$is_subscribed   = get_user_meta( get_current_user_ID(), 'hfe-subscribed' );
-		$subscribe_valid = ( is_array( $is_subscribed ) && isset( $is_subscribed[0] ) && 'yes' === $is_subscribed[0] ) ? 'yes' : false;
-
-		if ( ( ! empty( $is_dismissed ) && 'dismissed' === $is_dismissed[0] ) || 'yes' === $subscribe_valid ) {
-			return false;
-		} else {
-			$this->get_guide_modal();
-		}
+		$this->hfe_modal();
 		return $views;
+
 	}
 
 	/**
@@ -236,6 +227,27 @@ class HFE_Settings_Page {
 
 			case 'default':
 				break;
+		}
+	}
+
+	/**
+	 * Settings page - load modal content.
+	 *
+	 * Call back function for add submenu page function.
+	 *
+	 * @since 1.6.2
+	 */
+	public function hfe_modal() {
+		$is_dismissed = [];
+		$is_dismissed = get_user_meta( get_current_user_id(), 'hfe-popup' );
+
+		$is_subscribed   = get_user_meta( get_current_user_ID(), 'hfe-subscribed' );
+		$subscribe_valid = ( is_array( $is_subscribed ) && isset( $is_subscribed[0] ) && 'yes' === $is_subscribed[0] ) ? 'yes' : false;
+
+		if ( ( ! empty( $is_dismissed ) && 'dismissed' === $is_dismissed[0] ) || 'yes' === $subscribe_valid ) {
+			return false;
+		} else {
+			$this->get_guide_modal();
 		}
 	}
 
@@ -441,6 +453,10 @@ class HFE_Settings_Page {
 					<input id="hfe_subscribe_email" class="hfe-subscribe-field hfe-subscribe-email" type="text" name="hfe_subscribe_email" value="<?php echo get_option( 'hfe_guide_email' ); ?>">
 					<small class="subscription-desc"><?php esc_html_e( 'Email address is required', 'header-footer-elementor' ); ?></small>
 					<label class="subscription-label"><?php esc_html_e( 'Your Work Email', 'header-footer-elementor' ); ?></label>
+				</div>
+				<div class="hfe-input-container">
+					<input type="checkbox" name="hfe_subscribe_accept" id="hfe_subscribe_accept" class="hfe_subscribe_accept" value="check">
+					<label for="hfe_subscribe_accept" class="hfe-subscribe-accept-label"><?php esc_html_e( 'I agree to receive your newsletters and accept the data privacy statement.', 'header-footer-elementor' ); ?></label>
 				</div>
 			</div>
 			<p class="submit">

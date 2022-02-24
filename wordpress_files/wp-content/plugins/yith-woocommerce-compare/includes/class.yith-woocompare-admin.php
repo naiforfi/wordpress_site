@@ -144,8 +144,8 @@ if ( ! class_exists( 'YITH_Woocompare_Admin' ) ) {
 			$args = array(
 				'create_menu_page' => true,
 				'parent_slug'      => '',
-				'page_title'       => _x( 'WooCommerce Compare', 'Admin Plugin Name', 'yith-woocommerce-compare' ),
-				'menu_title'       => _x( 'Compare', 'Admin Plugin Name', 'yith-woocommerce-compare' ),
+				'page_title'       => 'YITH WooCommerce Compare',
+				'menu_title'       => 'Compare',
 				'capability'       => 'manage_options',
 				'parent'           => '',
 				'parent_page'      => 'yith_plugin_panel',
@@ -271,7 +271,7 @@ if ( ! class_exists( 'YITH_Woocompare_Admin' ) ) {
 		 * @return  string The premium landing link
 		 */
 		public function get_premium_landing_uri() {
-			return $this->premium_landing;
+			return apply_filters( 'yith_plugin_fw_premium_landing_uri', $this->premium_landing, YITH_WOOCOMPARE_SLUG );
 		}
 
 		/**
